@@ -7,23 +7,33 @@ import tkinter as tk
 from enum import Enum, auto
 from tkinter import ttk
 
+# ============================================================
+# Tokenizer for inline markdown
+# ============================================================
 
-# ---------------------------------------------------------
-# Token types for font styling in text
-# ---------------------------------------------------------
+
 class TokenType(Enum):
     NORMAL = auto()
     ITALIC = auto()
     BOLD = auto()
     BOLD_ITALIC = auto()
+    INLINE_CODE = auto()
 
 
-def tokenize_inline_markdown(line: str):
+def tokenize_inline(line: str):
     tokens = []
     i = 0
     n = len(line)
 
     while i < n:
+        # inline code: `code`
+        if line.startswith("`", i):
+            end = line.find("`", i + 1)
+            if end != -1:
+                tokens.append((TokenType.INLINE_CODE, line[i + 1 : end]))
+                i = end + 1
+                continue
+
         # ***bold+italic***
         if line.startswith("***", i):
             end = line.find("***", i + 3)
@@ -48,16 +58,16 @@ def tokenize_inline_markdown(line: str):
                 i = end + 1
                 continue
 
-        # Normal text (single character)
+        # normal char
         tokens.append((TokenType.NORMAL, line[i]))
         i += 1
 
     return tokens
 
 
-# ---------------------------------------------------------
-# Simple Markdown Renderer for Tkinter Text widget
-# ---------------------------------------------------------
+# ============================================================
+# Markdown Renderer
+# ============================================================
 
 
 def render_markdown(text_widget, content, image_cache):
@@ -68,60 +78,31 @@ def render_markdown(text_widget, content, image_cache):
     in_code_block = False
 
     for line in lines:
-        # -----------------------------
-        # Code block start/end
-        # -----------------------------
-        if line.strip().startswith("```"):
+        stripped = line.strip()
+
+        # fenced code block
+        if stripped.startswith("```"):
             in_code_block = not in_code_block
-            if in_code_block:
-                text_widget.insert(tk.END, "\n", "codeblock")
-            else:
-                text_widget.insert(tk.END, "\n")
+            text_widget.insert(tk.END, "\n", "codeblock")
             continue
 
         if in_code_block:
             text_widget.insert(tk.END, line + "\n", "codeblock")
             continue
 
-        # -----------------------------
-        # Headings
-        # -----------------------------
-        if line.startswith("# "):
-            text_widget.insert(tk.END, line[2:] + "\n", "h1")
+        # headings
+        if stripped.startswith("# "):
+            text_widget.insert(tk.END, stripped[2:] + "\n", "h1")
             continue
-        elif line.startswith("## "):
-            text_widget.insert(tk.END, line[3:] + "\n", "h2")
+        if stripped.startswith("## "):
+            text_widget.insert(tk.END, stripped[3:] + "\n", "h2")
             continue
-        elif line.startswith("### "):
-            text_widget.insert(tk.END, line[4:] + "\n", "h3")
+        if stripped.startswith("### "):
+            text_widget.insert(tk.END, stripped[4:] + "\n", "h3")
             continue
 
-        # -----------------------------
-        # Images: ![alt](path)
-        # -----------------------------
-        #         img_match = re.match(r"!
-
-        # \[.*?\]
-
-        # \((.*?)\)", line.strip())
-        #         if img_match:
-        #             img_path = img_match.group(1)
-        #             if os.path.exists(img_path):
-        #                 try:
-        #                     img = PhotoImage(file=img_path)
-        #                     image_cache.append(img)  # prevent garbage collection
-        #                     text_widget.image_create(tk.END, image=img)
-        #                 except Exception as e:
-        #                     text_widget.insert(tk.END, f"[Image load error: {e}]\n")
-        #             else:
-        #                 text_widget.insert(tk.END, f"[Image not found: {img_path}]\n")
-        #             text_widget.insert(tk.END, "\n")
-        #             continue
-
-        # -----------------------------
-        # Bold and italic
-        # -----------------------------
-        tokens = tokenize_inline_markdown(line)
+        # inline formatting
+        tokens = tokenize_inline(line)
         for ttype, text in tokens:
             if ttype == TokenType.NORMAL:
                 text_widget.insert(tk.END, text)
@@ -131,55 +112,65 @@ def render_markdown(text_widget, content, image_cache):
                 text_widget.insert(tk.END, text, "bold")
             elif ttype == TokenType.BOLD_ITALIC:
                 text_widget.insert(tk.END, text, ("bold", "italic"))
+            elif ttype == TokenType.INLINE_CODE:
+                text_widget.insert(tk.END, text, "inlinecode")
 
         text_widget.insert(tk.END, "\n")
 
     text_widget.config(state="disabled")
 
 
-# ---------------------------------------------------------
+# ============================================================
 # Main App
-# ---------------------------------------------------------
+# ============================================================
 
 
 class MarkdownViewerApp:
     def __init__(self, root, folder):
         self.root = root
-        self.folder = folder
-        self.image_cache = []  # prevent image GC
+        self.folder = os.path.abspath(os.path.expanduser(folder))
+        self.image_cache = []
 
-        root.title("Markdown Viewer Prototype")
+        root.title("Markdown Viewer")
+        root.minsize(800, 600)
 
-        # Notebook with tabs on the left
         style = ttk.Style()
-        style.configure("lefttab.TNotebook", tabposition="en")
+        style.configure("righttab.TNotebook", tabposition="en")
+        style.configure("righttab.TNotebook.Tab", padding=[10, 5], anchor="w")
 
-        self.notebook = ttk.Notebook(root, style="lefttab.TNotebook")
+        self.notebook = ttk.Notebook(root, style="righttab.TNotebook")
         self.notebook.pack(fill="both", expand=True)
 
         self.load_markdown_files()
 
+    def normalize_path(self, path):
+        rel = os.path.relpath(path, self.folder)
+        return rel.replace(os.sep, "/")
+
     def load_markdown_files(self):
-        md_files = sorted(glob.glob(os.path.join(self.folder, "**/*.md"), recursive=True))
+        md_files = glob.glob(os.path.join(self.folder, "**/*.md"), recursive=True)
 
-        def _normalize_path(path):
-            rel = os.path.relpath(path, self.folder)
-            return rel.replace(os.sep, "/")
-
-        for md_path in md_files:
+        for md_path in sorted(md_files):
             tab = ttk.Frame(self.notebook)
-            self.notebook.add(tab, text=_normalize_path(md_path))
+            label = self.normalize_path(md_path)
+            self.notebook.add(tab, text=label)
 
             text_widget = tk.Text(tab, wrap="word")
             text_widget.pack(fill="both", expand=True)
 
-            # Define styles
+            # scrollbar
+            scrollbar = ttk.Scrollbar(tab, command=text_widget.yview)
+            text_widget.configure(yscrollcommand=scrollbar.set)
+            scrollbar.pack(side="right", fill="y")
+
+            # styles
             text_widget.tag_config("h1", font=("Arial", 20, "bold"))
             text_widget.tag_config("h2", font=("Arial", 16, "bold"))
             text_widget.tag_config("h3", font=("Arial", 14, "bold"))
             text_widget.tag_config("bold", font=("Arial", 12, "bold"))
             text_widget.tag_config("italic", font=("Arial", 12, "italic"))
-            text_widget.tag_config("codeblock", background="#f0f0f0", font=("Courier", 11))
+            text_widget.tag_config("inlinecode", font=("Courier", 11), background="#e8e8e8")
+            text_widget.tag_config("codeblock", font=("Courier", 11), background="#f0f0f0")
 
             with open(md_path, "r", encoding="utf-8") as f:
                 content = f.read()
@@ -187,17 +178,23 @@ class MarkdownViewerApp:
             render_markdown(text_widget, content, self.image_cache)
 
 
-# ---------------------------------------------------------
-# Run the app
-# ---------------------------------------------------------
+# ============================================================
+# CLI
+# ============================================================
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Markdown Viewer")
+    parser.add_argument("folder", nargs="?", default=".", help="Folder to scan for markdown files")
+    return parser.parse_args()
+
+
+# ============================================================
+# Entry Point
+# ============================================================
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Markdown Viewer")
-    parser.add_argument(
-        "-f", "--folder", type=str, default="./example_folder", help="Folder to scan for markdown files"
-    )
-    args = parser.parse_args()
-
+    args = parse_args()
     root = tk.Tk()
     app = MarkdownViewerApp(root, folder=args.folder)
     root.mainloop()
