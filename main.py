@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import glob
 import os
 import tkinter as tk
@@ -191,6 +192,12 @@ class MarkdownViewerApp:
 # ---------------------------------------------------------
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Markdown Viewer")
+    parser.add_argument(
+        "-f", "--folder", type=str, default="./example_folder", help="Folder to scan for markdown files"
+    )
+    args = parser.parse_args()
+
     root = tk.Tk()
-    app = MarkdownViewerApp(root, folder="./example_folder")
+    app = MarkdownViewerApp(root, folder=args.folder)
     root.mainloop()
