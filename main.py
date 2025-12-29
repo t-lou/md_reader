@@ -155,13 +155,17 @@ class MarkdownViewerApp:
             label = self.normalize_path(md_path)
             self.notebook.add(tab, text=label)
 
-            text_widget = tk.Text(tab, wrap="word")
-            text_widget.pack(fill="both", expand=True)
+            # container frame for text + scrollbar
+            content_frame = ttk.Frame(tab)
+            content_frame.pack(fill="both", expand=True)
 
-            # scrollbar
-            scrollbar = ttk.Scrollbar(tab, command=text_widget.yview)
-            text_widget.configure(yscrollcommand=scrollbar.set)
+            text_widget = tk.Text(content_frame, wrap="word")
+            text_widget.pack(side="left", fill="both", expand=True)
+
+            scrollbar = ttk.Scrollbar(content_frame, command=text_widget.yview)
             scrollbar.pack(side="right", fill="y")
+
+            text_widget.configure(yscrollcommand=scrollbar.set)
 
             # styles
             text_widget.tag_config("h1", font=("Arial", 20, "bold"))
