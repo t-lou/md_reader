@@ -2,9 +2,57 @@
 
 import glob
 import os
-import re
 import tkinter as tk
+from enum import Enum, auto
 from tkinter import ttk
+
+
+# ---------------------------------------------------------
+# Token types for font styling in text
+# ---------------------------------------------------------
+class TokenType(Enum):
+    NORMAL = auto()
+    ITALIC = auto()
+    BOLD = auto()
+    BOLD_ITALIC = auto()
+
+
+def tokenize_inline_markdown(line: str):
+    tokens = []
+    i = 0
+    n = len(line)
+
+    while i < n:
+        # ***bold+italic***
+        if line.startswith("***", i):
+            end = line.find("***", i + 3)
+            if end != -1:
+                tokens.append((TokenType.BOLD_ITALIC, line[i + 3 : end]))
+                i = end + 3
+                continue
+
+        # **bold**
+        if line.startswith("**", i):
+            end = line.find("**", i + 2)
+            if end != -1:
+                tokens.append((TokenType.BOLD, line[i + 2 : end]))
+                i = end + 2
+                continue
+
+        # *italic*
+        if line.startswith("*", i):
+            end = line.find("*", i + 1)
+            if end != -1:
+                tokens.append((TokenType.ITALIC, line[i + 1 : end]))
+                i = end + 1
+                continue
+
+        # Normal text (single character)
+        tokens.append((TokenType.NORMAL, line[i]))
+        i += 1
+
+    return tokens
+
 
 # ---------------------------------------------------------
 # Simple Markdown Renderer for Tkinter Text widget
@@ -72,26 +120,16 @@ def render_markdown(text_widget, content, image_cache):
         # -----------------------------
         # Bold and italic
         # -----------------------------
-        pos = 0
-        while pos < len(line):
-            bold = re.search(r"\*\*(.*?)\*\*", line[pos:])
-            italic = re.search(r"\*(.*?)\*", line[pos:])
-
-            if bold and (not italic or bold.start() < italic.start()):
-                start = pos + bold.start()
-                end = pos + bold.end()
-                text_widget.insert(tk.END, line[pos:start])
-                text_widget.insert(tk.END, bold.group(1), "bold")
-                pos = end
-            elif italic:
-                start = pos + italic.start()
-                end = pos + italic.end()
-                text_widget.insert(tk.END, line[pos:start])
-                text_widget.insert(tk.END, italic.group(1), "italic")
-                pos = end
-            else:
-                text_widget.insert(tk.END, line[pos:])
-                break
+        tokens = tokenize_inline_markdown(line)
+        for ttype, text in tokens:
+            if ttype == TokenType.NORMAL:
+                text_widget.insert(tk.END, text)
+            elif ttype == TokenType.ITALIC:
+                text_widget.insert(tk.END, text, "italic")
+            elif ttype == TokenType.BOLD:
+                text_widget.insert(tk.END, text, "bold")
+            elif ttype == TokenType.BOLD_ITALIC:
+                text_widget.insert(tk.END, text, ("bold", "italic"))
 
         text_widget.insert(tk.END, "\n")
 
