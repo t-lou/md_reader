@@ -121,11 +121,15 @@ class MarkdownViewerApp:
         self.load_markdown_files()
 
     def load_markdown_files(self):
-        md_files = glob.glob(os.path.join(self.folder, "**/*.md"), recursive=True)
+        md_files = sorted(glob.glob(os.path.join(self.folder, "**/*.md"), recursive=True))
+
+        def _normalize_path(path):
+            rel = os.path.relpath(path, self.folder)
+            return rel.replace(os.sep, "/")
 
         for md_path in md_files:
             tab = ttk.Frame(self.notebook)
-            self.notebook.add(tab, text=os.path.basename(md_path))
+            self.notebook.add(tab, text=_normalize_path(md_path))
 
             text_widget = tk.Text(tab, wrap="word")
             text_widget.pack(fill="both", expand=True)
