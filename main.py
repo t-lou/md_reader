@@ -151,7 +151,7 @@ class MarkdownViewerApp:
 
         # Notebook with tabs on the left
         style = ttk.Style()
-        style.configure("lefttab.TNotebook", tabposition="wn")
+        style.configure("lefttab.TNotebook", tabposition="en")
 
         self.notebook = ttk.Notebook(root, style="lefttab.TNotebook")
         self.notebook.pack(fill="both", expand=True)
