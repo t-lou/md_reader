@@ -7,9 +7,7 @@ PATH_STORAGE = Path(__file__).parent.parent / "storage"
 
 
 def flatten_path(path_str: str) -> str:
-    p = Path(path_str).expanduser().resolve()
-
-    parts = list(p.parts)
+    parts = list(Path(path_str).parts)
 
     # Remove root markers like "/" or "\" or "C:\"
     # Windows: ('C:\\', 'Users', 'anoth', 'Documents')
@@ -31,6 +29,14 @@ def flatten_path(path_str: str) -> str:
 
 def is_mdlz_file(file_path):
     return file_path.lower().endswith(EXTENSION)
+
+
+def list_mdlz_files():
+    mdlz_files = []
+    for item in PATH_STORAGE.iterdir():
+        if item.is_file() and item.suffix == EXTENSION:
+            mdlz_files.append(item)
+    return mdlz_files
 
 
 def to_mdlz_filename(folder_path):
