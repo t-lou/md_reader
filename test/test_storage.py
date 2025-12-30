@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 
 from src.storage import flatten_path
@@ -26,3 +24,24 @@ from src.storage import flatten_path
 def test_flatten_path(input_path, expected):
     result = flatten_path(input_path)
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "relative_path",
+    [
+        "relative",
+        "relative/path",
+        "folder/subfolder",
+        "./something",
+        "../parent",
+        "../parent/child",
+        "C:relative",  # Windows-style relative
+        "C:folder\\file",  # Windows-style relative with backslashes
+        "",  # empty path
+        ".",  # current directory
+        "..",  # parent directory
+    ],
+)
+def test_flatten_path_relative(relative_path):
+    with pytest.raises(Exception):
+        flatten_path(relative_path)

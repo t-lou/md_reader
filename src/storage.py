@@ -1,4 +1,5 @@
 import os
+import re
 import zipfile
 from pathlib import Path
 
@@ -6,7 +7,22 @@ EXTENSION = ".mdlz"
 PATH_STORAGE = Path(__file__).parent.parent / "storage"
 
 
+def _is_absolute_path(path: str) -> bool:
+    # Unix absolute
+    if path.startswith("/"):
+        return True
+
+    # Windows absolute: C:\ or C:/
+    if re.match(r"^[A-Za-z]:[\\/]", path):
+        return True
+
+    return False
+
+
 def flatten_path(path_str: str) -> str:
+    if not _is_absolute_path(path_str):
+        raise ValueError(f"Path must be absolute: {path_str}")
+
     parts = list(Path(path_str).parts)
 
     # Remove root markers like "/" or "\" or "C:\"
