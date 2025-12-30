@@ -5,6 +5,7 @@ import glob
 import os
 import re
 import tkinter as tk
+import webbrowser
 from enum import Enum, auto
 from tkinter import ttk
 
@@ -28,6 +29,27 @@ class TokenType(Enum):
     BOLD = auto()
     BOLD_ITALIC = auto()
     INLINE_CODE = auto()
+
+
+link_callbacks = {}
+
+
+def on_click(event, url):
+    print(f"will open {url}")
+    _ = event  # necessary but not used
+    webbrowser.open_new(url)
+
+
+def insert_hyperlink(text_widget, start_index, end_index, url, callback_store):
+    tag_name = f"hyperlink_{len(callback_store)}"
+    text_widget.tag_add(tag_name, start_index, end_index)
+
+    # Bind click
+    callback_store[tag_name] = lambda e, url=url: on_click(e, url)
+    text_widget.tag_bind(tag_name, "<Button-1>", callback_store[tag_name])
+
+    # debugging line, it should not be empty
+    # print("Tag ranges:", text_widget.tag_ranges(tag_name))
 
 
 def tokenize_inline(line: str):
@@ -152,9 +174,42 @@ def render_markdown(text_widget, content, image_cache, base_folder):
             text_widget.insert(tk.END, stripped[4:] + "\n", "h3")
             continue
 
-        # inline formatting
-        tokens = tokenize_inline(line)
-        for ttype, text in tokens:
+        # ----------------------------------------------------
+        # Inline links: [text](url)
+        # ----------------------------------------------------
+        link_pattern = r"\[(.*?)\]\((.*?)\)"
+        pos = 0
+
+        for match in re.finditer(link_pattern, line):
+            start, end = match.span()
+            link_text, url = match.group(1), match.group(2)
+
+            # Insert text before the link
+            before = line[pos:start]
+            for ttype, text in tokenize_inline(before):
+                if ttype == TokenType.NORMAL:
+                    text_widget.insert(tk.END, text)
+                elif ttype == TokenType.ITALIC:
+                    text_widget.insert(tk.END, text, "italic")
+                elif ttype == TokenType.BOLD:
+                    text_widget.insert(tk.END, text, "bold")
+                elif ttype == TokenType.BOLD_ITALIC:
+                    text_widget.insert(tk.END, text, ("bold", "italic"))
+                elif ttype == TokenType.INLINE_CODE:
+                    text_widget.insert(tk.END, text, "inlinecode")
+
+            # Insert the link text
+            link_start = text_widget.index("end-1c")
+            text_widget.insert("end-1c", link_text, "hyperlink")
+            link_end = text_widget.index("end-1c")
+
+            insert_hyperlink(text_widget, link_start, link_end, url, callback_store=link_callbacks)
+
+            pos = end
+
+        # Insert remaining text after last link
+        remaining = line[pos:]
+        for ttype, text in tokenize_inline(remaining):
             if ttype == TokenType.NORMAL:
                 text_widget.insert(tk.END, text)
             elif ttype == TokenType.ITALIC:
@@ -162,11 +217,12 @@ def render_markdown(text_widget, content, image_cache, base_folder):
             elif ttype == TokenType.BOLD:
                 text_widget.insert(tk.END, text, "bold")
             elif ttype == TokenType.BOLD_ITALIC:
-                text_widget.insert(tk.END, text, "bold_italic")
+                text_widget.insert(tk.END, text, ("bold", "italic"))
             elif ttype == TokenType.INLINE_CODE:
                 text_widget.insert(tk.END, text, "inlinecode")
 
         text_widget.insert(tk.END, "\n")
+        continue
 
     text_widget.config(state="disabled")
 
@@ -227,6 +283,7 @@ class MarkdownViewerApp:
             text_widget.tag_config("bold_italic", font=("Arial", 12, "bold", "italic"))
             text_widget.tag_config("inlinecode", font=("Courier", 11), background="#e8e8e8")
             text_widget.tag_config("codeblock", font=("Courier", 11), background="#f0f0f0")
+            text_widget.tag_config("hyperlink", foreground="blue", underline=True)
 
             with open(md_path, "r", encoding="utf-8") as f:
                 content = f.read()

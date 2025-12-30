@@ -8,6 +8,10 @@ This is ***bold and italic together***.
 
 This is a sentence with *italic*, **bold**, and ***both*** mixed inline.
 
+Here an inline link [inline-link](https://github.com/t-lou/md_reader). And here a single-line link
+
+[a link](https://github.com/t-lou/md_reader)
+
 ## Subheading A
 
 Normal paragraph text for testing.  
