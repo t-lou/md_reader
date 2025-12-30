@@ -533,6 +533,14 @@ class LibraryLauncher:
         if folder:
             self.open_folder(folder)
 
+            with open(self.library_path, "r", encoding="utf-8") as f:
+                self.library_data = json.load(f)
+
+                if folder not in self.library_data.get("entry", []):
+                    self.library_data.setdefault("entry", []).append(folder)
+                    with open(self.library_path, "w", encoding="utf-8") as wf:
+                        json.dump(self.library_data, wf, indent=4)
+
     def open_folder(self, folder: str) -> None:
         # Restart the app with the folder argument
         subprocess.Popen([sys.executable, __file__, folder])
