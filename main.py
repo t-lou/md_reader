@@ -10,12 +10,13 @@ import webbrowser
 from enum import Enum, auto
 from pathlib import Path
 from tkinter import ttk
+from typing import Any, Callable, Dict, List, Tuple
 
 # Optional Pillow support for JPEG and others
 try:
     from PIL import Image, ImageTk
 
-    PIL_AVAILABLE = True
+    PIL_AVAILABLE: bool = True
 except ImportError:
     PIL_AVAILABLE = False
 
@@ -33,16 +34,18 @@ class TokenType(Enum):
     INLINE_CODE = auto()
 
 
-link_callbacks = {}
+link_callbacks: Dict[str, Callable[[Any], Any]] = {}
 
 
-def on_click(event, url):
+def on_click(event: Any, url: str) -> None:
     print(f"will open {url}")
-    _ = event  # necessary but not used
+    _ = event  # keep reference to satisfy callback signature
     webbrowser.open_new(url)
 
 
-def insert_hyperlink(text_widget, start_index, end_index, url, callback_store):
+def insert_hyperlink(
+    text_widget: tk.Text, start_index: str, end_index: str, url: str, callback_store: Dict[str, Callable[[Any], Any]]
+) -> None:
     tag_name = f"hyperlink_{len(callback_store)}"
     text_widget.tag_add(tag_name, start_index, end_index)
 
@@ -54,8 +57,8 @@ def insert_hyperlink(text_widget, start_index, end_index, url, callback_store):
     # print("Tag ranges:", text_widget.tag_ranges(tag_name))
 
 
-def tokenize_inline(line: str):
-    tokens = []
+def tokenize_inline(line: str) -> List[Tuple[TokenType, str]]:
+    tokens: List[Tuple[TokenType, str]] = []
     i = 0
     n = len(line)
 
@@ -104,7 +107,7 @@ def tokenize_inline(line: str):
 # ============================================================
 
 
-def render_markdown(text_widget, content, image_cache, base_folder):
+def render_markdown(text_widget: tk.Text, content: str, image_cache: List[Any], base_folder: str) -> None:
     text_widget.config(state="normal")
     text_widget.delete("1.0", tk.END)
 
@@ -235,10 +238,10 @@ def render_markdown(text_widget, content, image_cache, base_folder):
 
 
 class MarkdownViewerApp:
-    def __init__(self, root, folder):
-        self.root = root
-        self.folder = os.path.abspath(os.path.expanduser(folder))
-        self.image_cache = []
+    def __init__(self, root: tk.Tk, folder: str) -> None:
+        self.root: tk.Tk = root
+        self.folder: str = os.path.abspath(os.path.expanduser(folder))
+        self.image_cache: List[Any] = []
 
         abs_target_path = os.path.join(os.getcwd(), folder)
         root.title(f"Markdown Viewer -- {abs_target_path}")
@@ -253,21 +256,23 @@ class MarkdownViewerApp:
 
         self.load_markdown_files()
 
-    def normalize_path(self, path):
-        rel = os.path.relpath(path, self.folder)
+    def normalize_path(self, path: str) -> str:
+        rel: str = os.path.relpath(path, self.folder)
         return rel.replace(os.sep, "/")
 
-    def collect_files(self):
+    def collect_files(self) -> List[str]:
         base_folder = Path(self.folder)
         if Path.is_file(base_folder / "index.json"):
             with open(base_folder / "index.json", "r", encoding="utf-8") as f:
                 index_data = json.load(f)
-            md_files = [str(base_folder / entry) for entry in index_data["files"] if entry.endswith(".md")]
+            md_files: List[str] = [
+                str(base_folder / entry) for entry in index_data.get("files", []) if entry.endswith(".md")
+            ]
             return md_files
         md_files = glob.glob(os.path.join(self.folder, "**/*.md"), recursive=True)
         return sorted(md_files)
 
-    def load_markdown_files(self):
+    def load_markdown_files(self) -> None:
         md_files = self.collect_files()
 
         for md_path in md_files:
@@ -308,7 +313,7 @@ class MarkdownViewerApp:
 # ============================================================
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Markdown Viewer")
     parser.add_argument(
         "folder",

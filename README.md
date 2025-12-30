@@ -93,12 +93,10 @@ Paths are normalized to use forward slashes for consistency across platforms.
 
 ### Code blocks
 
-<pre>
 ```
 def hello():
     print("Hello")
 ```
-</pre>
 
 ```
 ![alt text](path/to/image.png)
