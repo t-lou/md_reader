@@ -509,19 +509,21 @@ class LibraryLauncher:
         library_path = Path(__file__).parent / "library.json"
         self.library_path = library_path
 
-        if library_path.exists():
-            try:
-                with open(library_path, "r", encoding="utf-8") as f:
-                    library_data = json.load(f)
-                entries = library_data.get("entry", [])
-                for entry_path in entries:
-                    ttk.Button(
-                        scrollable_frame,
-                        text=entry_path,
-                        command=lambda p=entry_path: self.open_folder(p),
-                    ).pack(fill="x", pady=5)
-            except Exception as e:
-                print(f"Error loading library.json: {e}")
+        if not library_path.exists():
+            with open(library_path, "w", encoding="utf-8") as f:
+                json.dump({"entry": []}, f, indent=4)
+        try:
+            with open(library_path, "r", encoding="utf-8") as f:
+                library_data = json.load(f)
+            entries = library_data.get("entry", [])
+            for entry_path in entries:
+                ttk.Button(
+                    scrollable_frame,
+                    text=entry_path,
+                    command=lambda p=entry_path: self.open_folder(p),
+                ).pack(fill="x", pady=5)
+        except Exception as e:
+            print(f"Error loading library.json: {e}")
 
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
