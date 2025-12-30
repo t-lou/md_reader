@@ -27,29 +27,15 @@ This tool is ideal for quickly browsing notes, documentation, or research logs w
 
 ## 🚀 Usage
 
-### Basic usage (open current directory)
-
-```
-python main.py
-```
-
 ### Open a specific folder
 
 ```
-python main.py path/to/folder
+python ./main.py ./example_folder
 ```
 
-### Windows example
+Then it will use the input as base for images, and shows like
 
-```
-python main.py C:\Users\me\notes
-```
-
-### Linux/macOS example
-
-```
-python main.py ~/projects/docs
-```
+![example1](misc/test_example.png)
 
 ---
 
