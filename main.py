@@ -160,7 +160,7 @@ def render_markdown(text_widget, content, image_cache, base_folder):
             elif ttype == TokenType.BOLD:
                 text_widget.insert(tk.END, text, "bold")
             elif ttype == TokenType.BOLD_ITALIC:
-                text_widget.insert(tk.END, text, ("bold", "italic"))
+                text_widget.insert(tk.END, text, "bold_italic")
             elif ttype == TokenType.INLINE_CODE:
                 text_widget.insert(tk.END, text, "inlinecode")
 
@@ -219,6 +219,7 @@ class MarkdownViewerApp:
             text_widget.tag_config("h3", font=("Arial", 14, "bold"))
             text_widget.tag_config("bold", font=("Arial", 12, "bold"))
             text_widget.tag_config("italic", font=("Arial", 12, "italic"))
+            text_widget.tag_config("bold_italic", font=("Arial", 12, "bold", "italic"))
             text_widget.tag_config("inlinecode", font=("Courier", 11), background="#e8e8e8")
             text_widget.tag_config("codeblock", font=("Courier", 11), background="#f0f0f0")
 
