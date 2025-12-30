@@ -9,6 +9,8 @@ from pathlib import Path
 from tkinter import ttk
 from typing import Any, Callable, Dict, List, Tuple
 
+from src.storage import PATH_STORAGE, pack_folder
+
 # Optional Pillow support for JPEG and others
 try:
     from PIL import Image, ImageTk
@@ -389,6 +391,18 @@ class MarkdownViewerApp:
         style = ttk.Style()
         style.configure("righttab.TNotebook", tabposition="en")
         style.configure("righttab.TNotebook.Tab", padding=[10, 5], anchor="w")
+
+        # Menu
+        menubar = tk.Menu(root)
+        file_menu = tk.Menu(menubar, tearoff=0)
+        file_menu.add_command(
+            label="Save",
+            command=lambda: pack_folder(self.folder, str(PATH_STORAGE / (os.path.basename(self.folder) + ".mdlz"))),
+        )
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=root.quit)
+        menubar.add_cascade(label="File", menu=file_menu)
+        self.root.config(menu=menubar)
 
         self.notebook = ttk.Notebook(root, style="righttab.TNotebook")
         self.notebook.pack(fill="both", expand=True)
