@@ -41,7 +41,7 @@ class LibraryLauncher:
         main_frame = ttk.Frame(root)
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        ttk.Label(main_frame, text="Select a folder:", font=("DejaVu Sans", 12, "bold")).pack(anchor="w", pady=(0, 10))
+        ttk.Label(main_frame, text="Select a Doc:", font=("DejaVu Sans", 12, "bold")).pack(anchor="w", pady=(0, 10))
 
         # Canvas + Scrollbar for button stack
         canvas = tk.Canvas(main_frame, highlightthickness=0)
@@ -78,6 +78,7 @@ class LibraryLauncher:
                 ttk.Button(
                     scrollable_frame,
                     text=entry_path,
+                    style="LeftAligned.TButton",
                     command=lambda p=entry_path: self.open_folder(p),
                 ).pack(fill="x", pady=5)
         except Exception as e:
@@ -112,6 +113,14 @@ class LibraryLauncher:
 if __name__ == "__main__":
     args = parse_args()
     root = tk.Tk()
+
+    style = ttk.Style()
+    style.configure(
+        "LeftAligned.TButton",
+        anchor="w",  # west = left
+        justify="left",  # for multi-line text
+        padding=(10, 5),  # optional: add left padding
+    )
 
     if args.folder is not None:
         # Launch viewer with folder
