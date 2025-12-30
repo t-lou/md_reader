@@ -180,9 +180,6 @@ class MarkdownViewerApp:
         self.folder = os.path.abspath(os.path.expanduser(folder))
         self.image_cache = []
 
-        root.title("Markdown Viewer")
-        root.minsize(800, 600)
-
         style = ttk.Style()
         style.configure("righttab.TNotebook", tabposition="en")
         style.configure("righttab.TNotebook.Tab", padding=[10, 5], anchor="w")
@@ -249,5 +246,7 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
     root = tk.Tk()
+    root.geometry("1280x960")
+    root.title(f"Markdown Viewer -- {args.folder}")
     app = MarkdownViewerApp(root, folder=args.folder)
     root.mainloop()
