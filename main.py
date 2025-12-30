@@ -8,6 +8,7 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, ttk
 
+from src.storage import EXTENSION, PATH_STORAGE, unpack_file_to_temp
 from src.viewer import MarkdownViewerApp
 
 # ============================================================
@@ -70,6 +71,8 @@ class LibraryLauncher:
         if not library_path.exists():
             with open(library_path, "w", encoding="utf-8") as f:
                 json.dump({"folders": []}, f, indent=4)
+
+        # List the folders
         try:
             with open(library_path, "r", encoding="utf-8") as f:
                 library_data = json.load(f)
@@ -84,8 +87,23 @@ class LibraryLauncher:
         except Exception as e:
             print(f"Error loading library.json: {e}")
 
+        # List the saved files
+        all_saved_files = [p for p in PATH_STORAGE.iterdir() if p.is_file() and p.suffix == EXTENSION]
+        for entry_path in all_saved_files:
+            ttk.Button(
+                scrollable_frame,
+                text=entry_path.stem,
+                style="LeftAligned.TButton",
+                command=lambda p=entry_path: self.open_saved_file(p),
+            ).pack(fill="x", pady=5)
+
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+
+    def open_saved_file(self, file_path: Path) -> None:
+        folder = unpack_file_to_temp(file_path)
+        print(f"Will open in temporary folders {folder}")
+        self.open_folder(folder)
 
     def on_open_directory(self) -> None:
         folder = filedialog.askdirectory(title="Select Markdown Folder")
@@ -102,6 +120,10 @@ class LibraryLauncher:
 
     def open_folder(self, folder: str) -> None:
         # Restart the app with the folder argument
+        if not Path(folder).exists():
+            print(f"Folder does not exist: {folder}")
+            raise FileNotFoundError(f"Folder does not exist: {folder}")
+
         subprocess.Popen([sys.executable, __file__, folder])
         self.root.quit()
 

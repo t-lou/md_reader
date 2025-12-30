@@ -1,5 +1,7 @@
+import logging
 import os
 import re
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -69,7 +71,7 @@ def unpack_file(zip_path, extract_to):
     with zipfile.ZipFile(zip_path, "r") as zipf:
         zipf.extractall(extract_to)
 
-    print(f"Extracted '{zip_path}' → '{extract_to}'")
+    logging.debug(f"Extracted '{zip_path}' → '{extract_to}'")
 
 
 def pack_folder(folder_path, zip_path):
@@ -82,4 +84,16 @@ def pack_folder(folder_path, zip_path):
                 rel_path = os.path.relpath(abs_file, folder_path)
                 zipf.write(abs_file, rel_path)
 
-    print(f"Compressed '{folder_path}' → '{zip_path}'")
+    logging.debug(f"Compressed '{folder_path}' → '{zip_path}'")
+
+
+def unpack_file_to_temp(zip_path):
+    zip_path = os.path.abspath(zip_path)
+
+    # stays alive until YOU delete it, the files should be small, good luck
+    extract_to = tempfile.mkdtemp()
+
+    with zipfile.ZipFile(zip_path, "r") as zipf:
+        zipf.extractall(extract_to)
+
+    return extract_to
