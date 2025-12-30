@@ -69,11 +69,11 @@ class LibraryLauncher:
 
         if not library_path.exists():
             with open(library_path, "w", encoding="utf-8") as f:
-                json.dump({"entry": []}, f, indent=4)
+                json.dump({"folders": []}, f, indent=4)
         try:
             with open(library_path, "r", encoding="utf-8") as f:
                 library_data = json.load(f)
-            entries = library_data.get("entry", [])
+            entries = library_data.get("folders", [])
             for entry_path in entries:
                 ttk.Button(
                     scrollable_frame,
@@ -94,8 +94,8 @@ class LibraryLauncher:
             with open(self.library_path, "r", encoding="utf-8") as f:
                 self.library_data = json.load(f)
 
-                if folder not in self.library_data.get("entry", []):
-                    self.library_data.setdefault("entry", []).append(folder)
+                if folder not in self.library_data.get("folders", []):
+                    self.library_data.setdefault("folders", []).append(folder)
                     with open(self.library_path, "w", encoding="utf-8") as wf:
                         json.dump(self.library_data, wf, indent=4)
 
