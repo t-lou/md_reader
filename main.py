@@ -107,14 +107,9 @@ def render_markdown(text_widget, content, image_cache, base_folder):
         if img_match:
             img_path = img_match.group(1)
 
-            if not os.path.isabs(img_path):
-                img_path = os.path.join(base_folder, img_path)
-            print(img_match)
-            img_path = img_match.group(1)
-
             # Resolve relative paths
             if not os.path.isabs(img_path):
-                img_path = os.path.join(os.getcwd(), img_path)
+                img_path = os.path.join(base_folder, img_path)
 
             if os.path.exists(img_path):
                 img = None
