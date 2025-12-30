@@ -6,6 +6,29 @@ EXTENSION = ".mdlz"
 PATH_STORAGE = Path(__file__).parent.parent / "storage"
 
 
+def flatten_path(path_str: str) -> str:
+    p = Path(path_str).expanduser().resolve()
+
+    parts = list(p.parts)
+
+    # Remove root markers like "/" or "\" or "C:\"
+    # Windows: ('C:\\', 'Users', 'anoth', 'Documents')
+    # Linux:   ('/', 'mnt', 'hdd1', 'docs')
+    cleaned = []
+
+    for part in parts:
+        # Windows drive root like "C:\"
+        if part.endswith(":\\") or part.endswith(":/"):
+            cleaned.append(part.rstrip("\\/").rstrip(":"))
+        # Linux root "/"
+        elif part in ("/", "\\"):
+            continue
+        else:
+            cleaned.append(part)
+
+    return "_".join(cleaned)
+
+
 def is_mdlz_file(file_path):
     return file_path.lower().endswith(EXTENSION)
 

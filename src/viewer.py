@@ -9,7 +9,7 @@ from pathlib import Path
 from tkinter import ttk
 from typing import Any, Callable, Dict, List, Tuple
 
-from src.storage import PATH_STORAGE, pack_folder
+from src.storage import PATH_STORAGE, flatten_path, pack_folder
 
 # Optional Pillow support for JPEG and others
 try:
@@ -397,7 +397,7 @@ class MarkdownViewerApp:
         file_menu = tk.Menu(menubar, tearoff=0)
         file_menu.add_command(
             label="Save",
-            command=lambda: pack_folder(self.folder, str(PATH_STORAGE / (os.path.basename(self.folder) + ".mdlz"))),
+            command=lambda: pack_folder(self.folder, str(PATH_STORAGE / (flatten_path(self.folder) + ".mdlz"))),
         )
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=root.quit)
