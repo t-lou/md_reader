@@ -310,7 +310,12 @@ class MarkdownViewerApp:
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Markdown Viewer")
-    parser.add_argument("folder", nargs="?", default=".", help="Folder to scan for markdown files")
+    parser.add_argument(
+        "folder",
+        nargs="?",
+        default=".",
+        help="Folder to scan for markdown files. If there is no index.json, all md files will be loaded and sorted.",
+    )
     return parser.parse_args()
 
 
