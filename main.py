@@ -16,11 +16,10 @@ try:
 except ImportError:
     PIL_AVAILABLE = False
 
+
 # ============================================================
 # Tokenizer for inline markdown
 # ============================================================
-
-
 class TokenType(Enum):
     NORMAL = auto()
     ITALIC = auto()
@@ -77,8 +76,6 @@ def tokenize_inline(line: str):
 # ============================================================
 # Markdown Renderer
 # ============================================================
-
-
 def render_markdown(text_widget, content, image_cache, base_folder):
     text_widget.config(state="normal")
     text_widget.delete("1.0", tk.END)
@@ -172,8 +169,6 @@ def render_markdown(text_widget, content, image_cache, base_folder):
 # ============================================================
 # Main App
 # ============================================================
-
-
 class MarkdownViewerApp:
     def __init__(self, root, folder):
         self.root = root
@@ -181,6 +176,7 @@ class MarkdownViewerApp:
         self.image_cache = []
 
         style = ttk.Style()
+        style.theme_use("clam")  # Use 'clam' theme for better clarity
         style.configure("righttab.TNotebook", tabposition="en")
         style.configure("righttab.TNotebook.Tab", padding=[10, 5], anchor="w")
 
@@ -232,8 +228,6 @@ class MarkdownViewerApp:
 # ============================================================
 # CLI
 # ============================================================
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Markdown Viewer")
     parser.add_argument("folder", nargs="?", default=".", help="Folder to scan for markdown files")
@@ -243,7 +237,6 @@ def parse_args():
 # ============================================================
 # Entry Point
 # ============================================================
-
 if __name__ == "__main__":
     args = parse_args()
     root = tk.Tk()
