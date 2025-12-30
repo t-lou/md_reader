@@ -21,8 +21,6 @@ This tool is ideal for quickly browsing notes, documentation, or research logs w
 - **Cross‑platform** (Linux, macOS, Windows)  
 - **Command‑line folder selection**  
 
-> Image support is planned but currently disabled.
-
 ---
 
 ## 🚀 Usage
@@ -101,8 +99,6 @@ def hello():
     print("Hello")
 ```
 </pre>
-
-### Images (planned)
 
 ```
 ![alt text](path/to/image.png)
