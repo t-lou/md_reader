@@ -8,7 +8,7 @@ import tkinter as tk
 from enum import Enum, auto
 from tkinter import ttk
 
-# Try to import Pillow (optional)
+# Optional Pillow support for JPEG and others
 try:
     from PIL import Image, ImageTk
 
@@ -18,8 +18,10 @@ except ImportError:
 
 
 # ============================================================
-# Tokenizer for inline markdown
+# Inline Markdown Tokenizer
 # ============================================================
+
+
 class TokenType(Enum):
     NORMAL = auto()
     ITALIC = auto()
@@ -34,7 +36,7 @@ def tokenize_inline(line: str):
     n = len(line)
 
     while i < n:
-        # inline code: `code`
+        # inline code
         if line.startswith("`", i):
             end = line.find("`", i + 1)
             if end != -1:
@@ -42,7 +44,7 @@ def tokenize_inline(line: str):
                 i = end + 1
                 continue
 
-        # ***bold+italic***
+        # ***bold italic***
         if line.startswith("***", i):
             end = line.find("***", i + 3)
             if end != -1:
@@ -76,6 +78,8 @@ def tokenize_inline(line: str):
 # ============================================================
 # Markdown Renderer
 # ============================================================
+
+
 def render_markdown(text_widget, content, image_cache, base_folder):
     text_widget.config(state="normal")
     text_widget.delete("1.0", tk.END)
@@ -96,17 +100,18 @@ def render_markdown(text_widget, content, image_cache, base_folder):
             text_widget.insert(tk.END, line + "\n", "codeblock")
             continue
 
-        # -----------------------------
+        # ----------------------------------------------------
         # Images: ![alt](path)
-        # -----------------------------
+        # ----------------------------------------------------
         img_match = re.match(r"!\[.*?\]\((.*?)\)", stripped)
-
         if img_match:
             img_path = img_match.group(1)
 
             # Resolve relative paths
             if not os.path.isabs(img_path):
                 img_path = os.path.join(base_folder, img_path)
+
+            img_path = os.path.abspath(img_path)
 
             if os.path.exists(img_path):
                 img = None
@@ -167,16 +172,21 @@ def render_markdown(text_widget, content, image_cache, base_folder):
 
 
 # ============================================================
-# Main App
+# Main Application
 # ============================================================
+
+
 class MarkdownViewerApp:
     def __init__(self, root, folder):
         self.root = root
         self.folder = os.path.abspath(os.path.expanduser(folder))
         self.image_cache = []
 
+        abs_target_path = os.path.join(os.getcwd(), folder)
+        root.title(f"Markdown Viewer -- {abs_target_path}")
+        root.minsize(1280, 960)
+
         style = ttk.Style()
-        style.theme_use("clam")  # Use 'clam' theme for better clarity
         style.configure("righttab.TNotebook", tabposition="en")
         style.configure("righttab.TNotebook.Tab", padding=[10, 5], anchor="w")
 
@@ -198,23 +208,22 @@ class MarkdownViewerApp:
             self.notebook.add(tab, text=label)
 
             # container frame for text + scrollbar
-            content_frame = ttk.Frame(tab)
-            content_frame.pack(fill="both", expand=True)
+            frame = ttk.Frame(tab)
+            frame.pack(fill="both", expand=True)
 
-            text_widget = tk.Text(content_frame, wrap="word")
+            text_widget = tk.Text(frame, wrap="word")
             text_widget.pack(side="left", fill="both", expand=True)
 
-            scrollbar = ttk.Scrollbar(content_frame, command=text_widget.yview)
+            scrollbar = ttk.Scrollbar(frame, command=text_widget.yview)
             scrollbar.pack(side="right", fill="y")
-
             text_widget.configure(yscrollcommand=scrollbar.set)
 
-            # styles
-            text_widget.tag_config("h1", font=("Arial", 20, "bold"))
-            text_widget.tag_config("h2", font=("Arial", 16, "bold"))
-            text_widget.tag_config("h3", font=("Arial", 14, "bold"))
-            text_widget.tag_config("bold", font=("Arial", 12, "bold"))
-            text_widget.tag_config("italic", font=("Arial", 12, "italic"))
+            # fonts
+            text_widget.tag_config("h1", font=("DejaVu Sans", 20, "bold"))
+            text_widget.tag_config("h2", font=("DejaVu Sans", 16, "bold"))
+            text_widget.tag_config("h3", font=("DejaVu Sans", 14, "bold"))
+            text_widget.tag_config("bold", font=("DejaVu Sans", 12, "bold"))
+            text_widget.tag_config("italic", font=("DejaVu Sans", 12, "italic"))
             text_widget.tag_config("bold_italic", font=("Arial", 12, "bold", "italic"))
             text_widget.tag_config("inlinecode", font=("Courier", 11), background="#e8e8e8")
             text_widget.tag_config("codeblock", font=("Courier", 11), background="#f0f0f0")
@@ -222,12 +231,14 @@ class MarkdownViewerApp:
             with open(md_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            render_markdown(text_widget, content, self.image_cache, base_folder=self.folder)
+            render_markdown(text_widget, content, self.image_cache, self.folder)
 
 
 # ============================================================
 # CLI
 # ============================================================
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Markdown Viewer")
     parser.add_argument("folder", nargs="?", default=".", help="Folder to scan for markdown files")
@@ -237,10 +248,9 @@ def parse_args():
 # ============================================================
 # Entry Point
 # ============================================================
+
 if __name__ == "__main__":
     args = parse_args()
     root = tk.Tk()
-    root.geometry("1280x960")
-    root.title(f"Markdown Viewer -- {args.folder}")
     app = MarkdownViewerApp(root, folder=args.folder)
     root.mainloop()
