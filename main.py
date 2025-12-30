@@ -3,9 +3,18 @@
 import argparse
 import glob
 import os
+import re
 import tkinter as tk
 from enum import Enum, auto
 from tkinter import ttk
+
+# Try to import Pillow (optional)
+try:
+    from PIL import Image, ImageTk
+
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
 
 # ============================================================
 # Tokenizer for inline markdown
@@ -70,7 +79,7 @@ def tokenize_inline(line: str):
 # ============================================================
 
 
-def render_markdown(text_widget, content, image_cache):
+def render_markdown(text_widget, content, image_cache, base_folder):
     text_widget.config(state="normal")
     text_widget.delete("1.0", tk.END)
 
@@ -88,6 +97,51 @@ def render_markdown(text_widget, content, image_cache):
 
         if in_code_block:
             text_widget.insert(tk.END, line + "\n", "codeblock")
+            continue
+
+        # -----------------------------
+        # Images: ![alt](path)
+        # -----------------------------
+        img_match = re.match(r"!\[.*?\]\((.*?)\)", stripped)
+
+        if img_match:
+            img_path = img_match.group(1)
+
+            if not os.path.isabs(img_path):
+                img_path = os.path.join(base_folder, img_path)
+            print(img_match)
+            img_path = img_match.group(1)
+
+            # Resolve relative paths
+            if not os.path.isabs(img_path):
+                img_path = os.path.join(os.getcwd(), img_path)
+
+            if os.path.exists(img_path):
+                img = None
+
+                # Try Tkinter PhotoImage (PNG/GIF)
+                try:
+                    img = tk.PhotoImage(file=img_path)
+                except Exception:
+                    img = None
+
+                # Try Pillow for JPEG and others
+                if img is None and PIL_AVAILABLE:
+                    try:
+                        pil_img = Image.open(img_path)
+                        img = ImageTk.PhotoImage(pil_img)
+                    except Exception:
+                        img = None
+
+                if img is not None:
+                    image_cache.append(img)
+                    text_widget.image_create(tk.END, image=img)
+                else:
+                    text_widget.insert(tk.END, f"[Unsupported image format: {img_path}]\n")
+            else:
+                text_widget.insert(tk.END, f"[Image not found: {img_path}]\n")
+
+            text_widget.insert(tk.END, "\n")
             continue
 
         # headings
@@ -179,7 +233,7 @@ class MarkdownViewerApp:
             with open(md_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            render_markdown(text_widget, content, self.image_cache)
+            render_markdown(text_widget, content, self.image_cache, base_folder=self.folder)
 
 
 # ============================================================

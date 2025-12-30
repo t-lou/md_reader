@@ -29,6 +29,9 @@ for i in range(3):
     print(i)
 ```
 
+## Image
+![Image format](src/lena.png)
+
 ## Mixed Content
 
 A paragraph with **bold**, then a code block, then *italic*, then an image:
