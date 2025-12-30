@@ -21,6 +21,15 @@ except ImportError:
     PIL_AVAILABLE = False
 
 
+# Optional mistune for proper Markdown parsing
+try:
+    import mistune
+
+    MISTUNE_AVAILABLE: bool = True
+except Exception:
+    MISTUNE_AVAILABLE = False
+
+
 # ============================================================
 # Inline Markdown Tokenizer
 # ============================================================
@@ -107,7 +116,131 @@ def tokenize_inline(line: str) -> List[Tuple[TokenType, str]]:
 # ============================================================
 
 
-def render_markdown(text_widget: tk.Text, content: str, image_cache: List[Any], base_folder: str) -> None:
+def render_markdown_with_mistune(text_widget: tk.Text, content: str, image_cache: List[Any], base_folder: str) -> None:
+    try:
+        md = mistune.create_markdown(renderer="ast")
+        ast = md(content)
+
+        def visit(node: dict) -> None:
+            ntype = node.get("type")
+
+            if ntype == "text":
+                text_widget.insert(tk.END, node.get("text", ""))
+                return
+
+            if ntype == "heading":
+                level = node.get("level", 1)
+                start = text_widget.index("end-1c")
+                for child in node.get("children", []):
+                    visit(child)
+                end = text_widget.index("end-1c")
+                tag = "h1" if level == 1 else "h2" if level == 2 else "h3"
+                text_widget.tag_add(tag, start, end)
+                text_widget.insert(tk.END, "\n")
+                return
+
+            if ntype == "paragraph":
+                start = text_widget.index("end-1c")
+                for child in node.get("children", []):
+                    visit(child)
+                end = text_widget.index("end-1c")
+                text_widget.insert(tk.END, "\n")
+                return
+
+            if ntype == "strong":
+                start = text_widget.index("end-1c")
+                for child in node.get("children", []):
+                    visit(child)
+                end = text_widget.index("end-1c")
+                text_widget.tag_add("bold", start, end)
+                return
+
+            if ntype == "emphasis":
+                start = text_widget.index("end-1c")
+                for child in node.get("children", []):
+                    visit(child)
+                end = text_widget.index("end-1c")
+                text_widget.tag_add("italic", start, end)
+                return
+
+            if ntype == "codespan":
+                start = text_widget.index("end-1c")
+                text_widget.insert(tk.END, node.get("text", ""))
+                end = text_widget.index("end-1c")
+                text_widget.tag_add("inlinecode", start, end)
+                return
+
+            if ntype == "code":
+                text_widget.insert(tk.END, node.get("text", "") + "\n", "codeblock")
+                return
+
+            if ntype == "link":
+                url = node.get("link") or node.get("href") or ""
+                start = text_widget.index("end-1c")
+                for child in node.get("children", []):
+                    visit(child)
+                end = text_widget.index("end-1c")
+                text_widget.tag_add("hyperlink", start, end)
+                insert_hyperlink(text_widget, start, end, url, link_callbacks)
+                return
+
+            if ntype == "image":
+                src = node.get("src") or node.get("url") or ""
+                # Resolve relative paths
+                img_path = src
+                if not os.path.isabs(img_path):
+                    img_path = os.path.join(base_folder, img_path)
+                img_path = os.path.abspath(img_path)
+
+                if os.path.exists(img_path):
+                    img = None
+                    try:
+                        img = tk.PhotoImage(file=img_path)
+                    except Exception:
+                        img = None
+                    if img is None and PIL_AVAILABLE:
+                        try:
+                            pil_img = Image.open(img_path)
+                            img = ImageTk.PhotoImage(pil_img)
+                        except Exception:
+                            img = None
+
+                    if img is not None:
+                        image_cache.append(img)
+                        text_widget.image_create(tk.END, image=img)
+                    else:
+                        text_widget.insert(tk.END, f"[Unsupported image format: {img_path}]\n")
+                else:
+                    text_widget.insert(tk.END, f"[Image not found: {img_path}]\n")
+                text_widget.insert(tk.END, "\n")
+                return
+
+            if ntype == "list":
+                for item in node.get("children", []):
+                    # list_item
+                    text_widget.insert(tk.END, "- ")
+                    for child in item.get("children", []):
+                        visit(child)
+                    text_widget.insert(tk.END, "\n")
+                return
+
+            # fallback: attempt to visit children
+            for child in node.get("children", []):
+                visit(child)
+
+        text_widget.config(state="normal")
+        text_widget.delete("1.0", tk.END)
+        for node in ast:
+            visit(node)
+        text_widget.config(state="disabled")
+        return
+    except Exception:
+        # fall back to the original renderer on error
+        pass
+
+
+def render_markdown_raw(text_widget: tk.Text, content: str, image_cache: List[Any], base_folder: str) -> None:
+    # original simple renderer (fallback)
     text_widget.config(state="normal")
     text_widget.delete("1.0", tk.END)
 
@@ -230,6 +363,15 @@ def render_markdown(text_widget: tk.Text, content: str, image_cache: List[Any], 
         continue
 
     text_widget.config(state="disabled")
+
+
+def render_markdown(text_widget: tk.Text, content: str, image_cache: List[Any], base_folder: str) -> None:
+    # If mistune is available, use the AST renderer for robust parsing
+    if MISTUNE_AVAILABLE:
+        render_markdown_with_mistune(text_widget, content, image_cache, base_folder)
+        return
+    # Fallback to the raw renderer
+    render_markdown_raw(text_widget, content, image_cache, base_folder)
 
 
 # ============================================================
