@@ -2,11 +2,13 @@
 
 import argparse
 import glob
+import json
 import os
 import re
 import tkinter as tk
 import webbrowser
 from enum import Enum, auto
+from pathlib import Path
 from tkinter import ttk
 
 # Optional Pillow support for JPEG and others
@@ -255,10 +257,20 @@ class MarkdownViewerApp:
         rel = os.path.relpath(path, self.folder)
         return rel.replace(os.sep, "/")
 
-    def load_markdown_files(self):
+    def collect_files(self):
+        base_folder = Path(self.folder)
+        if Path.is_file(base_folder / "index.json"):
+            with open(base_folder / "index.json", "r", encoding="utf-8") as f:
+                index_data = json.load(f)
+            md_files = [str(base_folder / entry) for entry in index_data["files"] if entry.endswith(".md")]
+            return md_files
         md_files = glob.glob(os.path.join(self.folder, "**/*.md"), recursive=True)
+        return sorted(md_files)
 
-        for md_path in sorted(md_files):
+    def load_markdown_files(self):
+        md_files = self.collect_files()
+
+        for md_path in md_files:
             tab = ttk.Frame(self.notebook)
             label = self.normalize_path(md_path)
             self.notebook.add(tab, text=label)
