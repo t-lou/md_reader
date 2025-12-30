@@ -37,6 +37,16 @@ Then it will use the input as base for images, and shows like
 
 ![example1](misc/test_example.png)
 
+### Viewing my own readme would be like
+
+```
+python ./main.py ./
+```
+
+Then it will use the input as base for images, and shows like
+
+![example1](misc/repo_example.png)
+
 ---
 
 ## 📂 Folder Structure
