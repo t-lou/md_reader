@@ -6,6 +6,7 @@ import pytest
 
 from src import storage
 from src.storage import flatten_path
+import json
 
 
 @pytest.mark.parametrize(
@@ -114,3 +115,30 @@ def test_unpack_file_to_temp_and_cleanup(tmp_path):
     finally:
         # cleanup the temporary directory created by the function
         shutil.rmtree(tempdir, ignore_errors=True)
+
+
+def test_load_library_data_and_add_folder(tmp_path, monkeypatch):
+    fake_lib = tmp_path / "library.json"
+
+    # Ensure we are not touching the project's real library.json
+    monkeypatch.setattr(storage, "PATH_LIBRARY", fake_lib)
+
+    # When file does not exist, load_library_data should return default
+    if fake_lib.exists():
+        fake_lib.unlink()
+
+    data = storage.load_library_data()
+    assert data == storage.DEFAULT_LIBRARY_STRUCTURE
+
+    # Add a folder and verify it is written
+    folder = "/home/user/docs"
+    storage.add_folder_to_library(folder)
+
+    assert fake_lib.exists()
+    written = json.loads(fake_lib.read_text(encoding="utf-8"))
+    assert folder in written.get("folders", [])
+
+    # Adding the same folder again should not duplicate
+    storage.add_folder_to_library(folder)
+    written2 = json.loads(fake_lib.read_text(encoding="utf-8"))
+    assert written2.get("folders", []).count(folder) == 1

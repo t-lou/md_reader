@@ -7,6 +7,7 @@ representation used for storage.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
@@ -17,6 +18,15 @@ from typing import List, Union
 
 EXTENSION = ".mdlz"
 PATH_STORAGE = Path(__file__).parent.parent / "storage"
+PATH_LIBRARY = Path(__file__).parent.parent / "library.json"
+DEFAULT_LIBRARY_STRUCTURE = {"folders": []}
+
+if not PATH_STORAGE.exists():
+    PATH_STORAGE.mkdir(parents=True, exist_ok=True)
+
+if not PATH_LIBRARY.exists():
+    with open(PATH_LIBRARY, "w", encoding="utf-8") as f:
+        json.dump(DEFAULT_LIBRARY_STRUCTURE, f, indent=4)
 
 
 def _is_absolute_path(path: str) -> bool:
@@ -145,3 +155,33 @@ def unpack_file_to_temp(zip_path: Union[str, Path]) -> str:
         zipf.extractall(extract_to)
 
     return extract_to
+
+
+def load_library_data() -> dict:
+    """Load the library data from PATH_LIBRARY.
+
+    If the file does not exist, returns an empty library structure.
+    """
+    if not PATH_LIBRARY.exists():
+        return DEFAULT_LIBRARY_STRUCTURE
+
+    try:
+        with open(PATH_LIBRARY, "r", encoding="utf-8") as f:
+            library_data = json.load(f)
+        return library_data
+    except Exception as e:
+        logging.error(f"Error loading library.json: {e}")
+        return DEFAULT_LIBRARY_STRUCTURE
+
+
+def add_folder_to_library(folder: str) -> None:
+    """Add a folder path to the library.json file.
+
+    If the folder is already present, it will not be added again.
+    """
+    library_data = load_library_data()
+
+    if folder not in library_data.get("folders", []):
+        library_data.setdefault("folders", []).append(folder)
+        with open(PATH_LIBRARY, "w", encoding="utf-8") as wf:
+            json.dump(library_data, wf, indent=4)

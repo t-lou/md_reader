@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
-import json
 import subprocess
 import sys
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, ttk
 
-from .storage import EXTENSION, PATH_STORAGE, unpack_file_to_temp
+from .storage import EXTENSION, PATH_STORAGE, add_folder_to_library, load_library_data, unpack_file_to_temp
 
 # ============================================================
 # Library Launcher GUI
@@ -53,28 +52,15 @@ class LibraryLauncher:
             command=self.on_open_directory,
         ).pack(fill="x", pady=5, padx=6, expand=True)
 
-        # Load library entries
-        library_path = Path(__file__).parent.parent / "library.json"
-        self.library_path = library_path
-
-        if not library_path.exists():
-            with open(library_path, "w", encoding="utf-8") as f:
-                json.dump({"folders": []}, f, indent=4)
-
-        # List the folders
-        try:
-            with open(library_path, "r", encoding="utf-8") as f:
-                library_data = json.load(f)
-            entries = library_data.get("folders", [])
-            for entry_path in entries:
-                ttk.Button(
-                    scrollable_frame,
-                    text=entry_path,
-                    style="LeftAligned.TButton",
-                    command=lambda p=entry_path: self.open_folder(p),
-                ).pack(fill="x", pady=5, padx=6, expand=True)
-        except Exception as e:
-            print(f"Error loading library.json: {e}")
+        # List the saved folders from library.json
+        library_data = load_library_data()
+        for entry_path in library_data.get("folders", []):
+            ttk.Button(
+                scrollable_frame,
+                text=entry_path,
+                style="LeftAligned.TButton",
+                command=lambda p=entry_path: self.open_folder(p),
+            ).pack(fill="x", pady=5, padx=6, expand=True)
 
         # List the saved files
         all_saved_files = [p for p in PATH_STORAGE.iterdir() if p.is_file() and p.suffix == EXTENSION]
@@ -98,14 +84,7 @@ class LibraryLauncher:
         folder = filedialog.askdirectory(title="Select Markdown Folder")
         if folder:
             self.open_folder(folder)
-
-            with open(self.library_path, "r", encoding="utf-8") as f:
-                self.library_data = json.load(f)
-
-                if folder not in self.library_data.get("folders", []):
-                    self.library_data.setdefault("folders", []).append(folder)
-                    with open(self.library_path, "w", encoding="utf-8") as wf:
-                        json.dump(self.library_data, wf, indent=4)
+            add_folder_to_library(folder)
 
     def open_folder(self, folder: str) -> None:
         # Restart the app with the folder argument
