@@ -31,20 +31,27 @@ class LibraryLauncher:
         scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
 
+        # update scrollregion when inner frame changes
         scrollable_frame.bind(
             "<Configure>",
             lambda e: canvas.configure(scrollregion=canvas.bbox("all")),
         )
 
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        # create a window on the canvas and keep its id so we can
+        # make the inner frame match the canvas width on resize
+        self._canvas_window_id = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        # Directory picker button
+        # make inner frame width follow canvas width so children (buttons)
+        # can expand to fill horizontally
+        canvas.bind("<Configure>", lambda e: canvas.itemconfig(self._canvas_window_id, width=e.width))
+
+        # Directory picker button (fill full width)
         ttk.Button(
             scrollable_frame,
             text="Open Directory...",
             command=self.on_open_directory,
-        ).pack(fill="x", pady=5)
+        ).pack(fill="x", pady=5, padx=6, expand=True)
 
         # Load library entries
         library_path = Path(__file__).parent.parent / "library.json"
@@ -65,7 +72,7 @@ class LibraryLauncher:
                     text=entry_path,
                     style="LeftAligned.TButton",
                     command=lambda p=entry_path: self.open_folder(p),
-                ).pack(fill="x", pady=5)
+                ).pack(fill="x", pady=5, padx=6, expand=True)
         except Exception as e:
             print(f"Error loading library.json: {e}")
 
@@ -77,7 +84,7 @@ class LibraryLauncher:
                 text=entry_path.stem,
                 style="LeftAligned.TButton",
                 command=lambda p=entry_path: self.open_saved_file(p),
-            ).pack(fill="x", pady=5)
+            ).pack(fill="x", pady=5, padx=6, expand=True)
 
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
