@@ -96,14 +96,6 @@ def list_mdlz_files() -> List[Path]:
     return mdlz_files
 
 
-def to_mdlz_filename(folder_path: Union[str, Path]) -> str:
-    """Generate a storage filename for ``folder_path`` by using the
-    folder's basename and appending the `.mdlz` extension.
-    """
-    base_name = os.path.basename(os.path.normpath(str(folder_path)))
-    return f"{base_name}{EXTENSION}"
-
-
 def unpack_file(zip_path: Union[str, Path], extract_to: Union[str, Path]) -> None:
     """Unpack the zip archive at ``zip_path`` into ``extract_to``.
 

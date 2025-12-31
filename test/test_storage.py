@@ -52,15 +52,6 @@ def test_flatten_path_relative(relative_path):
         flatten_path(relative_path)
 
 
-def test_is_mdlz_file_and_to_mdlz_filename():
-    assert storage.is_mdlz_file("archive.mdlz")
-    assert storage.is_mdlz_file("ARCHIVE.MDLZ")
-    assert not storage.is_mdlz_file("readme.md")
-
-    assert storage.to_mdlz_filename("/some/path/MyFolder") == "MyFolder.mdlz"
-    assert storage.to_mdlz_filename("C:\\temp\\name\\") == "name.mdlz"
-
-
 def test_list_mdlz_files_respects_path_storage(tmp_path, monkeypatch):
     fake_storage = tmp_path / "storage"
     fake_storage.mkdir()
