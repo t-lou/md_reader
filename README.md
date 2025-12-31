@@ -35,7 +35,7 @@ python -m src.main
 This opens the **Library Launcher** GUI where you can:
 - Click **"Open Directory..."** to select a markdown folder
 - Click a saved folder/archive button to open it directly
-- Add frequently-used folders to your library
+- Add one new folder to your library
 
 ### Open a specific folder from the command line:
 
@@ -55,10 +55,6 @@ The archive will be extracted to a temporary directory and displayed. The folder
 ### Compress a folder into an archive:
 
 Use the **"Save"** option in the File menu (or manually call the save function) to create a `.mdlz` archive of the current folder for portable sharing and storage.
-
-Then it will use the input as base for images, and shows like
-
-![example1](misc/repo_example.png)
 
 ---
 
@@ -84,6 +80,8 @@ appendix/references.md
 ```
 
 Paths are normalized to use forward slashes for consistency across platforms.
+
+If a reordering or selection of the files is needed, a index.json can be helpful.
 
 ---
 
