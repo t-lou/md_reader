@@ -135,14 +135,3 @@ Image parsing is implemented but disabled until the feature is finalized.
 - Tkinter (included with most Python installations)
 
 No external libraries required.
-
----
-
-## 📌 Roadmap
-
-- [ ] Image rendering (PNG/GIF first, optional JPEG via Pillow)  
-- [ ] Tree‑view sidebar instead of Notebook tabs  
-- [ ] Dark mode  
-- [ ] Search inside markdown  
-- [ ] Auto‑reload on file changes  
-- [ ] Split‑view comparison mode  
