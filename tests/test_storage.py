@@ -1,5 +1,6 @@
 import json
 import shutil
+import sys
 import zipfile
 from pathlib import Path
 
@@ -7,6 +8,11 @@ import pytest
 
 from src import storage
 from src.storage import flatten_path
+
+# Ensure the package root (md_reader) is on sys.path so we can import `src.storage`
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from src.storage import gen_init_index_json, list_all_md_files_in_folder
 
 
 @pytest.mark.parametrize(
@@ -142,3 +148,51 @@ def test_load_library_data_and_add_folder(tmp_path, monkeypatch):
     storage.add_folder_to_library(folder)
     written2 = json.loads(fake_lib.read_text(encoding="utf-8"))
     assert written2.get("folders", []).count(folder) == 1
+
+
+def _create_files(base: Path, files):
+    for f in files:
+        p = base / f
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("content")
+
+
+def test_list_all_md_files_in_folder(tmp_path):
+    base = tmp_path / "folder"
+    base.mkdir()
+
+    files = ["a.md", "b.txt", "subdir/c.md"]
+    _create_files(base, files)
+
+    result = list_all_md_files_in_folder(base)
+    result_strs = [str(p) for p in result]
+
+    expected = sorted([str(base / "a.md"), str(base / "subdir/c.md")])
+    assert result_strs == expected
+
+
+def test_gen_init_index_json_writes_entries(tmp_path):
+    base = tmp_path / "folder2"
+    base.mkdir()
+
+    _create_files(base, ["one.md", "two.md", "ignore.txt"])
+
+    # Accept both Path and str inputs
+    gen_init_index_json(base)
+
+    index_path = base / "index.json"
+    assert index_path.exists()
+
+    data = json.loads(index_path.read_text(encoding="utf-8"))
+    assert "entries" in data and isinstance(data["entries"], list)
+
+    entries_sorted = sorted(data["entries"])
+    expected = sorted([str(base / "one.md"), str(base / "two.md")])
+    assert entries_sorted == expected
+
+
+def test_gen_init_index_json_rejects_relative_path(tmp_path):
+    # relative path should raise ValueError
+    rel = "some/relative/path"
+    with pytest.raises(ValueError):
+        gen_init_index_json(rel)
