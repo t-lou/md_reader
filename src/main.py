@@ -18,7 +18,11 @@ def parse_args() -> argparse.Namespace:
         "folder",
         nargs="?",
         default=None,
-        help="Folder to scan for markdown files. If there is no index.json, all md files will be loaded and sorted.",
+        help=(
+            "Path to a markdown folder or a .mdlz compressed archive. For folders, if index.json exists, files are "
+            "loaded in order; otherwise all .md files are scanned recursively and sorted. For .mdlz archives, they "
+            "are extracted to a temporary directory."
+        ),
     )
     return parser.parse_args()
 

@@ -1,45 +1,60 @@
 # 📘 **Markdown Reader (Tkinter‑based)**
 
 A lightweight, cross‑platform Markdown viewer built entirely with **standard Python libraries** — no external dependencies required.  
-It recursively loads all `*.md` files from a given folder and displays each file in its own tab.
+It recursively loads all `*.md` files from a given folder (or unpacks and displays them from a compressed `.mdlz` archive) and displays each file in its own tab.
 
-This tool is ideal for quickly browsing notes, documentation, or research logs without installing heavy editors.
+This tool is ideal for quickly browsing notes, documentation, research logs, and learning materials (e.g., copied Q&A from Copilot or Gemini) without installing heavy editors or requiring external software.
 
 ---
 
 ## ✨ Features
 
 - **Pure Python + Tkinter** — no external packages needed  
-- **Recursive folder scanning** for `*.md` files  
+- **Folder support**: recursively scan all `*.md` files from any directory  
+- **Compressed archive support**: open saved `.mdlz` archives (ZIP format) containing markdown files  
+- **Library launcher**: save frequently-used folders and archives for quick access  
 - **One tab per file**, with paths shown relative to the chosen folder  
 - **Markdown rendering**, including:
   - `#`, `##`, `###` headings  
   - *italic*, **bold**, and ***bold+italic***  
   - Inline code `` `like this` ``  
   - Fenced code blocks  
-- **Resizable window**, scrollable content  
+  - Links (click to open in browser)  
+  - Images (if they exist relative to the markdown)  
+- **Resizable window** with auto-expanding buttons, scrollable content  
 - **Cross‑platform** (Linux, macOS, Windows)  
-- **Command‑line folder selection**  
+- **Command‑line folder or archive path selection**  
 
----
+---Launch from the md_reader directory (or use the run.bash/run.bat):
 
-## 🚀 Usage
-
-### Open a specific folder
-
-```
-python ./main.py ./example_folder
+```bash
+cd md_reader
+python -m src.main
 ```
 
-Then it will use the input as base for images, and shows like
+This opens the **Library Launcher** GUI where you can:
+- Click **"Open Directory..."** to select a markdown folder
+- Click a saved folder/archive button to open it directly
+- Add frequently-used folders to your library
+
+### Open a specific folder from the command line:
+
+```bash
+cd md_reader
+python -m src.main ./example_folder
+```
+
+It will scan all `*.md` files recursively and use the folder as the base path for images.
+
+Example output:
 
 ![example1](misc/test_example.png)
 
-### Viewing my own readme would be like
+The archive will be extracted to a temporary directory and displayed. The folder path is auto-detected from the archive filename.
 
-```
-python ./main.py ./
-```
+### Compress a folder into an archive:
+
+Use the **"Save"** option in the File menu (or manually call the save function) to create a `.mdlz` archive of the current folder for portable sharing and storage.
 
 Then it will use the input as base for images, and shows like
 
