@@ -131,7 +131,7 @@ Image parsing is implemented but disabled until the feature is finalized.
 
 ## 🛠 Requirements
 
-- Python 3.8+
+- Python 3.10+
 - Tkinter (included with most Python installations)
 
 No external libraries required.
