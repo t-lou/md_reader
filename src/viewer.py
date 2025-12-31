@@ -9,7 +9,7 @@ from pathlib import Path
 from tkinter import ttk
 from typing import Any, Callable, Dict, List, Tuple
 
-from src.storage import PATH_STORAGE, flatten_path, pack_folder
+from .storage import PATH_STORAGE, flatten_path, pack_folder
 
 # Optional Pillow support for JPEG and others
 try:

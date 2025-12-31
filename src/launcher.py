@@ -7,7 +7,7 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, ttk
 
-from src.storage import EXTENSION, PATH_STORAGE, unpack_file_to_temp
+from .storage import EXTENSION, PATH_STORAGE, unpack_file_to_temp
 
 # ============================================================
 # Library Launcher GUI
@@ -106,5 +106,5 @@ class LibraryLauncher:
             print(f"Folder does not exist: {folder}")
             raise FileNotFoundError(f"Folder does not exist: {folder}")
 
-        subprocess.Popen([sys.executable, __file__, folder])
+        subprocess.Popen([sys.executable, "-m", "src.main", folder])
         self.root.quit()
