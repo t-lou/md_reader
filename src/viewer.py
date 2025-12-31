@@ -386,7 +386,7 @@ class MarkdownViewerApp:
 
         abs_target_path = os.path.join(os.getcwd(), folder)
         root.title(f"Markdown Viewer -- {abs_target_path}")
-        root.minsize(1280, 960)
+        root.minsize(1366, 768)
 
         style = ttk.Style()
         style.configure("righttab.TNotebook", tabposition="en")

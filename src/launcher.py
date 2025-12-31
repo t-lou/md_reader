@@ -18,7 +18,7 @@ class LibraryLauncher:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.root.title("Markdown Viewer - Library")
-        self.root.geometry("400x300")
+        self.root.geometry("390x844")
 
         # Main frame with scrollbar
         main_frame = ttk.Frame(root)
