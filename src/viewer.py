@@ -1,15 +1,12 @@
-import glob
-import json
 import os
 import re
 import tkinter as tk
 import webbrowser
 from enum import Enum, auto
-from pathlib import Path
 from tkinter import ttk
 from typing import Any, Callable, Dict, List, Tuple
 
-from .storage import PATH_STORAGE, flatten_path, pack_folder
+from .storage import PATH_STORAGE, flatten_path, gen_init_index_json, list_all_md_files_in_folder, pack_folder
 
 # Optional Pillow support for JPEG and others
 try:
@@ -399,6 +396,10 @@ class MarkdownViewerApp:
             label="Save",
             command=lambda: pack_folder(self.folder, str(PATH_STORAGE / (flatten_path(self.folder) + ".mdlz"))),
         )
+        file_menu.add_command(
+            label="Init Index",
+            command=lambda: gen_init_index_json(self.folder),
+        )
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=root.quit)
         menubar.add_cascade(label="File", menu=file_menu)
@@ -413,20 +414,8 @@ class MarkdownViewerApp:
         rel: str = os.path.relpath(path, self.folder)
         return rel.replace(os.sep, "/")
 
-    def collect_files(self) -> List[str]:
-        base_folder = Path(self.folder)
-        if Path.is_file(base_folder / "index.json"):
-            with open(base_folder / "index.json", "r", encoding="utf-8") as f:
-                index_data = json.load(f)
-            md_files: List[str] = [
-                str(base_folder / entry) for entry in index_data.get("files", []) if entry.endswith(".md")
-            ]
-            return md_files
-        md_files = glob.glob(os.path.join(self.folder, "**/*.md"), recursive=True)
-        return sorted(md_files)
-
     def load_markdown_files(self) -> None:
-        md_files = self.collect_files()
+        md_files = list_all_md_files_in_folder(self.folder)
 
         for md_path in md_files:
             tab = ttk.Frame(self.notebook)

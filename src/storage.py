@@ -7,6 +7,7 @@ representation used for storage.
 
 from __future__ import annotations
 
+import glob
 import json
 import logging
 import os
@@ -185,3 +186,34 @@ def add_folder_to_library(folder: str) -> None:
         library_data.setdefault("folders", []).append(folder)
         with open(PATH_LIBRARY, "w", encoding="utf-8") as wf:
             json.dump(library_data, wf, indent=4)
+
+
+def list_all_md_files_in_folder(folder_path: Union[str, Path]) -> List[Path]:
+    """Recursively list all `.md` files in the specified folder.
+
+    Returns a list of `Path` objects.
+    """
+    logging.debug(f"Listing all .md files in folder: {folder_path}")
+    md_files = glob.glob(str(Path(folder_path) / "**/*.md"), recursive=True)
+    return sorted([Path(f) for f in md_files])
+
+
+def gen_init_index_json(path_to_folder: Union[str, Path]) -> None:
+    """Generate an initial index.json file in the specified folder.
+
+    The index.json will contain an empty list of entries.
+    """
+    if not _is_absolute_path(str(path_to_folder)):
+        raise ValueError(f"Path must be absolute: {path_to_folder}")
+
+    # Ensure we operate on a string path and create JSON-serializable entries
+    path_to_folder = str(path_to_folder)
+    index_path = os.path.join(path_to_folder, "index.json")
+
+    entries = [str(p) for p in list_all_md_files_in_folder(path_to_folder)]
+    initial_index = {"entries": entries}
+
+    with open(index_path, "w", encoding="utf-8") as f:
+        json.dump(initial_index, f, indent=4)
+
+    logging.debug(f"Generated initial index.json at '{index_path}'")

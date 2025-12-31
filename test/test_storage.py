@@ -1,3 +1,4 @@
+import json
 import shutil
 import zipfile
 from pathlib import Path
@@ -6,7 +7,6 @@ import pytest
 
 from src import storage
 from src.storage import flatten_path
-import json
 
 
 @pytest.mark.parametrize(
