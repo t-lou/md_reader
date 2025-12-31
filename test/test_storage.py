@@ -1,13 +1,11 @@
-import pytest
-
-from src.storage import flatten_path
-import os
 import shutil
 import zipfile
-import tempfile
 from pathlib import Path
 
+import pytest
+
 from src import storage
+from src.storage import flatten_path
 
 
 @pytest.mark.parametrize(
