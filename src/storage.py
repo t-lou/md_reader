@@ -17,7 +17,7 @@ import zipfile
 from pathlib import Path, PureWindowsPath
 from typing import List, Union
 
-EXTENSION = ".mdlz"
+EXTENSION = "mdlz"
 PATH_STORAGE = Path(__file__).parent.parent / "storage"
 PATH_LIBRARY = Path(__file__).parent.parent / "library.json"
 DEFAULT_LIBRARY_STRUCTURE = {"folders": []}
@@ -91,20 +91,6 @@ def is_mdlz_file(file_path: str) -> bool:
     The check is case-insensitive.
     """
     return file_path.lower().endswith(EXTENSION)
-
-
-def list_mdlz_files() -> List[Path]:
-    """Return a list of `Path` objects for files in `PATH_STORAGE` with
-    the exact ``EXTENSION`` suffix.
-
-    Note: this checks ``Path.suffix == EXTENSION`` (case-sensitive) to
-    match existing project behavior.
-    """
-    mdlz_files: List[Path] = []
-    for item in PATH_STORAGE.iterdir():
-        if item.is_file() and item.suffix == EXTENSION:
-            mdlz_files.append(item)
-    return mdlz_files
 
 
 def unpack_file(zip_path: Union[str, Path], extract_to: Union[str, Path]) -> None:
@@ -188,14 +174,14 @@ def add_folder_to_library(folder: str) -> None:
             json.dump(library_data, wf, indent=4)
 
 
-def list_all_md_files_in_folder(folder_path: Union[str, Path]) -> List[Path]:
-    """Recursively list all `.md` files in the specified folder.
+def list_all_files_with_ext(folder_path: Union[str, Path], ext: str) -> List[Path]:
+    """Recursively list all files in the specified folder with given extension.
 
     Returns a list of `Path` objects.
     """
-    logging.debug(f"Listing all .md files in folder: {folder_path}")
-    md_files = glob.glob(str(Path(folder_path) / "**/*.md"), recursive=True)
-    return sorted([Path(f) for f in md_files])
+    logging.debug(f"Listing all .{ext} files in folder: {folder_path}")
+    files = glob.glob(str(Path(folder_path) / f"**/*.{ext}"), recursive=True)
+    return sorted([Path(f) for f in files])
 
 
 def gen_init_index_json(path_to_folder: Union[str, Path]) -> None:
@@ -210,7 +196,7 @@ def gen_init_index_json(path_to_folder: Union[str, Path]) -> None:
     path_to_folder = str(path_to_folder)
     index_path = os.path.join(path_to_folder, "index.json")
 
-    entries = [str(p) for p in list_all_md_files_in_folder(path_to_folder)]
+    entries = [str(p) for p in list_all_files_with_ext(path_to_folder, "md")]
     initial_index = {"entries": entries}
 
     with open(index_path, "w", encoding="utf-8") as f:

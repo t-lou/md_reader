@@ -13,7 +13,7 @@ from .storage import (
     add_folder_to_library,
     flatten_path,
     gen_init_index_json,
-    list_all_md_files_in_folder,
+    list_all_files_with_ext,
     pack_folder,
 )
 
@@ -436,7 +436,7 @@ class MarkdownViewerApp:
         return rel.replace(os.sep, "/")
 
     def load_markdown_files(self) -> None:
-        md_files = list_all_md_files_in_folder(self.folder)
+        md_files = list_all_files_with_ext(self.folder, "md")
 
         for md_path in md_files:
             tab = ttk.Frame(self.notebook)

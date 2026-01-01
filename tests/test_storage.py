@@ -12,7 +12,7 @@ from src.storage import flatten_path
 # Ensure the package root (md_reader) is on sys.path so we can import `src.storage`
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.storage import gen_init_index_json, list_all_md_files_in_folder
+from src.storage import gen_init_index_json, list_all_files_with_ext
 
 
 @pytest.mark.parametrize(
@@ -69,8 +69,7 @@ def test_list_mdlz_files_respects_path_storage(tmp_path, monkeypatch):
 
     monkeypatch.setattr(storage, "PATH_STORAGE", fake_storage)
 
-    files = storage.list_mdlz_files()
-    # list_mdlz_files uses Path.suffix == EXTENSION (case-sensitive), so
+    files = storage.list_all_files_with_ext(fake_storage, "mdlz")
     # only the lower-case .mdlz file should be returned
     names = {p.name for p in files}
     assert "one.mdlz" in names
@@ -157,14 +156,14 @@ def _create_files(base: Path, files):
         p.write_text("content")
 
 
-def test_list_all_md_files_in_folder(tmp_path):
+def test_list_all_files_with_ext(tmp_path):
     base = tmp_path / "folder"
     base.mkdir()
 
     files = ["a.md", "b.txt", "subdir/c.md"]
     _create_files(base, files)
 
-    result = list_all_md_files_in_folder(base)
+    result = list_all_files_with_ext(base, "md")
     result_strs = [str(p) for p in result]
 
     expected = sorted([str(base / "a.md"), str(base / "subdir/c.md")])

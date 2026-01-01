@@ -12,6 +12,7 @@ from .storage import (
     PATH_STORAGE,
     add_folder_to_library,
     clean_non_existing_folders_from_library,
+    list_all_files_with_ext,
     load_library_data,
     unpack_file_to_temp,
 )
@@ -74,8 +75,7 @@ class LibraryLauncher:
             ).pack(fill="x", pady=5, padx=6, expand=True)
 
         # List the saved files
-        all_saved_files = [p for p in PATH_STORAGE.iterdir() if p.is_file() and p.suffix == EXTENSION]
-        for entry_path in all_saved_files:
+        for entry_path in list_all_files_with_ext(PATH_STORAGE, EXTENSION):
             ttk.Button(
                 scrollable_frame,
                 text=entry_path.stem,
