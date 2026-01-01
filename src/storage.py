@@ -217,3 +217,16 @@ def gen_init_index_json(path_to_folder: Union[str, Path]) -> None:
         json.dump(initial_index, f, indent=4)
 
     logging.debug(f"Generated initial index.json at '{index_path}'")
+
+
+def clean_non_existing_folders_from_library() -> None:
+    """Remove non-existing folder paths from the library.json file."""
+    library_data = load_library_data()
+    folders = library_data.get("folders", [])
+    existing_folders = [f for f in folders if Path(f).exists()]
+
+    if len(existing_folders) != len(folders):
+        library_data["folders"] = existing_folders
+        with open(PATH_LIBRARY, "w", encoding="utf-8") as wf:
+            json.dump(library_data, wf, indent=4)
+        logging.debug("Cleaned non-existing folders from library.json")

@@ -6,7 +6,14 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, ttk
 
-from .storage import EXTENSION, PATH_STORAGE, add_folder_to_library, load_library_data, unpack_file_to_temp
+from .storage import (
+    EXTENSION,
+    PATH_STORAGE,
+    add_folder_to_library,
+    clean_non_existing_folders_from_library,
+    load_library_data,
+    unpack_file_to_temp,
+)
 
 # ============================================================
 # Library Launcher GUI
@@ -53,6 +60,7 @@ class LibraryLauncher:
         ).pack(fill="x", pady=5, padx=6, expand=True)
 
         # List the saved folders from library.json
+        clean_non_existing_folders_from_library()
         library_data = load_library_data()
         for entry_path in library_data.get("folders", []):
             ttk.Button(

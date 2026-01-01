@@ -196,3 +196,40 @@ def test_gen_init_index_json_rejects_relative_path(tmp_path):
     rel = "some/relative/path"
     with pytest.raises(ValueError):
         gen_init_index_json(rel)
+
+
+def test_clean_non_existing_folders_from_library_removes_missing(tmp_path, monkeypatch):
+    fake_lib = tmp_path / "library.json"
+    # point storage.PATH_LIBRARY to our fake file
+    monkeypatch.setattr(storage, "PATH_LIBRARY", fake_lib)
+
+    existing = tmp_path / "exists"
+    existing.mkdir()
+    nonexisting = str(tmp_path / "does_not_exist")
+
+    data = {"folders": [str(existing), nonexisting]}
+    fake_lib.write_text(json.dumps(data), encoding="utf-8")
+
+    storage.clean_non_existing_folders_from_library()
+
+    written = json.loads(fake_lib.read_text(encoding="utf-8"))
+    assert str(existing) in written.get("folders", [])
+    assert nonexisting not in written.get("folders", [])
+
+
+def test_clean_non_existing_folders_from_library_no_change_when_all_exist(tmp_path, monkeypatch):
+    fake_lib = tmp_path / "library.json"
+    monkeypatch.setattr(storage, "PATH_LIBRARY", fake_lib)
+
+    a = tmp_path / "a"
+    b = tmp_path / "b"
+    a.mkdir()
+    b.mkdir()
+
+    data = {"folders": [str(a), str(b)]}
+    fake_lib.write_text(json.dumps(data), encoding="utf-8")
+
+    storage.clean_non_existing_folders_from_library()
+
+    written = json.loads(fake_lib.read_text(encoding="utf-8"))
+    assert sorted(written.get("folders", [])) == sorted(data["folders"])
