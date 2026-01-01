@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
 import tkinter as tk
 from tkinter import ttk
 
 from .launcher import LibraryLauncher
 from .viewer import MarkdownViewerApp
 
+
 # ============================================================
 # CLI
 # ============================================================
-
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Markdown Viewer")
     parser.add_argument(
@@ -30,9 +30,8 @@ def parse_args() -> argparse.Namespace:
 # ============================================================
 # Entry Point
 # ============================================================
-
 if __name__ == "__main__":
-    print("Starting Markdown Viewer...")
+    logging.info("Starting Markdown Viewer...")
 
     args = parse_args()
     root = tk.Tk()

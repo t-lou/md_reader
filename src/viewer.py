@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import shutil
@@ -37,8 +38,6 @@ except Exception:
 # ============================================================
 # Inline Markdown Tokenizer
 # ============================================================
-
-
 class TokenType(Enum):
     NORMAL = auto()
     ITALIC = auto()
@@ -51,7 +50,7 @@ link_callbacks: Dict[str, Callable[[Any], Any]] = {}
 
 
 def on_click(event: Any, url: str) -> None:
-    print(f"will open {url}")
+    logging.debug(f"will open {url}")
     _ = event  # keep reference to satisfy callback signature
     webbrowser.open_new(url)
 
@@ -67,7 +66,7 @@ def insert_hyperlink(
     text_widget.tag_bind(tag_name, "<Button-1>", callback_store[tag_name])
 
     # debugging line, it should not be empty
-    # print("Tag ranges:", text_widget.tag_ranges(tag_name))
+    logging.debug("Tag ranges:", text_widget.tag_ranges(tag_name))
 
 
 def tokenize_inline(line: str) -> List[Tuple[TokenType, str]]:
@@ -118,8 +117,6 @@ def tokenize_inline(line: str) -> List[Tuple[TokenType, str]]:
 # ============================================================
 # Markdown Renderer
 # ============================================================
-
-
 def render_markdown_with_mistune(text_widget: tk.Text, content: str, image_cache: List[Any], base_folder: str) -> None:
     try:
         md = mistune.create_markdown(renderer="ast")
@@ -381,8 +378,6 @@ def render_markdown(text_widget: tk.Text, content: str, image_cache: List[Any], 
 # ============================================================
 # Main Application
 # ============================================================
-
-
 class MarkdownViewerApp:
     def __init__(self, root: tk.Tk, folder: str) -> None:
         self.root: tk.Tk = root
@@ -428,9 +423,9 @@ class MarkdownViewerApp:
         if target_dir:
             try:
                 shutil.copytree(self.folder, target_dir, dirs_exist_ok=True)
-                print(f"Successfully copied {self.folder} to {target_dir}")
+                logging.info(f"Successfully copied {self.folder} to {target_dir}")
             except Exception as e:
-                print(f"Error copying folder: {e}")
+                logging.error(f"Error copying folder: {e}")
 
         self.folder = target_dir
         add_folder_to_library(self.folder)

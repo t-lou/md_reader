@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import subprocess
 import sys
 import tkinter as tk
@@ -15,11 +16,10 @@ from .storage import (
     unpack_file_to_temp,
 )
 
+
 # ============================================================
 # Library Launcher GUI
 # ============================================================
-
-
 class LibraryLauncher:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
@@ -85,7 +85,7 @@ class LibraryLauncher:
 
     def open_saved_file(self, file_path: Path) -> None:
         folder = unpack_file_to_temp(file_path)
-        print(f"Will open in temporary folders {folder}")
+        logging.info(f"Will open in temporary folders {folder}")
         self.open_folder(folder)
 
     def on_open_directory(self) -> None:
@@ -97,7 +97,7 @@ class LibraryLauncher:
     def open_folder(self, folder: str) -> None:
         # Restart the app with the folder argument
         if not Path(folder).exists():
-            print(f"Folder does not exist: {folder}")
+            logging.error(f"Folder does not exist: {folder}")
             raise FileNotFoundError(f"Folder does not exist: {folder}")
 
         subprocess.Popen([sys.executable, "-m", "src.main", folder])
