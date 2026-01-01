@@ -389,6 +389,7 @@ class MarkdownViewerApp:
         root.minsize(1366, 768)
 
         style = ttk.Style()
+        style.theme_use("clam")
         style.configure("righttab.TNotebook", tabposition="en")
         style.configure("righttab.TNotebook.Tab", padding=[10, 5], anchor="w")
 
@@ -460,8 +461,8 @@ class MarkdownViewerApp:
             text_widget.tag_config("bold", font=("DejaVu Sans", 12, "bold"))
             text_widget.tag_config("italic", font=("DejaVu Sans", 12, "italic"))
             text_widget.tag_config("bold_italic", font=("Arial", 12, "bold", "italic"))
-            text_widget.tag_config("inlinecode", font=("Courier", 11), background="#e8e8e8")
-            text_widget.tag_config("codeblock", font=("Courier", 11), background="#f0f0f0")
+            text_widget.tag_config("inlinecode", font=("Courier", 11), background="#707070", foreground="#90ee90")
+            text_widget.tag_config("codeblock", font=("Courier", 11), background="#707070", foreground="#90ee90")
             text_widget.tag_config("hyperlink", foreground="blue", underline=True)
 
             with open(md_path, "r", encoding="utf-8") as f:

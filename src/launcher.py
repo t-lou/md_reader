@@ -26,6 +26,9 @@ class LibraryLauncher:
         self.root.title("Markdown Viewer - Library")
         self.root.geometry("390x844")
 
+        style = ttk.Style()
+        style.theme_use("clam")
+
         # Main frame with scrollbar
         main_frame = ttk.Frame(root)
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
