@@ -1,1 +1,3 @@
-python -m src.main
+pushd "%~dp0"
+python -m src.main %*
+popd
