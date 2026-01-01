@@ -1,12 +1,20 @@
 import os
 import re
+import shutil
 import tkinter as tk
 import webbrowser
 from enum import Enum, auto
-from tkinter import ttk
+from tkinter import filedialog, ttk
 from typing import Any, Callable, Dict, List, Tuple
 
-from .storage import PATH_STORAGE, flatten_path, gen_init_index_json, list_all_md_files_in_folder, pack_folder
+from .storage import (
+    PATH_STORAGE,
+    add_folder_to_library,
+    flatten_path,
+    gen_init_index_json,
+    list_all_md_files_in_folder,
+    pack_folder,
+)
 
 # Optional Pillow support for JPEG and others
 try:
@@ -393,8 +401,12 @@ class MarkdownViewerApp:
         menubar = tk.Menu(root)
         file_menu = tk.Menu(menubar, tearoff=0)
         file_menu.add_command(
-            label="Save",
+            label="Save to file",
             command=lambda: pack_folder(self.folder, str(PATH_STORAGE / (flatten_path(self.folder) + ".mdlz"))),
+        )
+        file_menu.add_command(
+            label="Save to folder",
+            command=self.save_to_folder,
         )
         file_menu.add_command(
             label="Init Index",
@@ -409,6 +421,19 @@ class MarkdownViewerApp:
         self.notebook.pack(fill="both", expand=True)
 
         self.load_markdown_files()
+
+    def save_to_folder(self) -> None:
+        """Open a dialog to select a directory and copy the current folder to it."""
+        target_dir = filedialog.askdirectory(title="Select destination folder")
+        if target_dir:
+            try:
+                shutil.copytree(self.folder, target_dir, dirs_exist_ok=True)
+                print(f"Successfully copied {self.folder} to {target_dir}")
+            except Exception as e:
+                print(f"Error copying folder: {e}")
+
+        self.folder = target_dir
+        add_folder_to_library(self.folder)
 
     def normalize_path(self, path: str) -> str:
         rel: str = os.path.relpath(path, self.folder)
