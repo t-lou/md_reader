@@ -440,6 +440,19 @@ class MarkdownViewerApp:
         return rel.replace(os.sep, "/")
 
     def load_markdown_files(self) -> None:
+        # Clear existing tabs/frames in the notebook before reloading
+        for child in self.notebook.winfo_children():
+            try:
+                child.destroy()
+            except Exception:
+                pass
+
+        # Clear any cached images to avoid holding references
+        try:
+            self.image_cache.clear()
+        except Exception:
+            self.image_cache = []
+
         md_files = list_all_files_with_ext(self.folder, "md")
 
         for md_path in md_files:
