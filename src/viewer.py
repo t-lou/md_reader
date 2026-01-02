@@ -408,6 +408,10 @@ class MarkdownViewerApp:
             label="Init Index",
             command=lambda: gen_init_index_json(self.folder),
         )
+        file_menu.add_command(
+            label="Reload",
+            command=lambda: self.load_markdown_files(),
+        )
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=root.quit)
         menubar.add_cascade(label="File", menu=file_menu)
