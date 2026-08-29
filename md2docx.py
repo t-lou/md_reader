@@ -35,10 +35,26 @@ Tip (--reference-doc):
 """
 
 import argparse
+import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+
+def normalize_latex_delimiters(text: str) -> str:
+    """Rewrite \\( \\) and \\[ \\] LaTeX delimiters to $ $ / $$ $$ so Pandoc's
+    tex_math_dollars extension recognizes them as math. Fenced code blocks
+    (```...```) are left untouched so code containing literal backslashes
+    isn't corrupted."""
+    parts = re.split(r"(```.*?```)", text, flags=re.DOTALL)
+    for i, part in enumerate(parts):
+        if part.startswith("```"):
+            continue  # leave code blocks as-is
+        part = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", part, flags=re.DOTALL)
+        part = re.sub(r"\\\((.*?)\\\)", r"$\1$", part, flags=re.DOTALL)
+        parts[i] = part
+    return "".join(parts)
 
 
 def check_pandoc() -> None:
@@ -54,25 +70,38 @@ def check_pandoc() -> None:
 
 
 def convert(md_path: Path, out_path: Path, reference_doc: str = None) -> bool:
-    # gfm: matches the github-flavored markdown style Copilot/Claude/Gemini output
-    # (tables, fenced code, autolinks) + tex_math_dollars for $...$ / $$...$$ LaTeX
-    cmd = [
-        "pandoc",
-        str(md_path),
-        "-f",
-        "gfm+tex_math_dollars",
-        "-t",
-        "docx",
-        "-o",
-        str(out_path),
-        "--resource-path",
-        str(md_path.parent) or ".",
-        "--standalone",
-    ]
-    if reference_doc:
-        cmd += ["--reference-doc", reference_doc]
+    original_text = md_path.read_text(encoding="utf-8")
+    normalized_text = normalize_latex_delimiters(original_text)
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    # Write the normalized text to a temp file *in the same directory* so
+    # relative image paths in the markdown still resolve correctly.
+    tmp_path = md_path.with_name(f".{md_path.stem}__normalized.md")
+    tmp_path.write_text(normalized_text, encoding="utf-8")
+
+    try:
+        # gfm: matches the github-flavored markdown style Copilot/Claude/Gemini
+        # output (tables, fenced code, autolinks) + tex_math_dollars for
+        # $...$ / $$...$$ LaTeX (now including what were originally \( \) / \[ \])
+        cmd = [
+            "pandoc",
+            str(tmp_path),
+            "-f",
+            "gfm+tex_math_dollars",
+            "-t",
+            "docx",
+            "-o",
+            str(out_path),
+            "--resource-path",
+            str(md_path.parent) or ".",
+            "--standalone",
+        ]
+        if reference_doc:
+            cmd += ["--reference-doc", reference_doc]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+    finally:
+        tmp_path.unlink(missing_ok=True)
+
     if result.returncode != 0:
         print(f"  x FAILED: {md_path.name}")
         if result.stderr.strip():
@@ -108,6 +137,12 @@ def main() -> None:
     for md_path in inputs:
         if not md_path.exists():
             print(f"  x NOT FOUND: {md_path}")
+            continue
+        if md_path.is_dir():
+            print(f"  - SKIPPED (directory): {md_path}")
+            continue
+        if md_path.suffix.lower() != ".md":
+            print(f"  - SKIPPED (not .md): {md_path}")
             continue
 
         if args.output:
